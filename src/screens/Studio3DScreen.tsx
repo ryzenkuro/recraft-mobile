@@ -1,4 +1,4 @@
-import { ArrowLeft, Layers, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Layers, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Drawer } from 'vaul';
@@ -70,48 +70,54 @@ export default function Studio3DScreen() {
     : null;
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-sky-lighter md:flex-row">
-      {/* KIRI / UTAMA: Kanvas 3D Interaktif */}
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-surface md:flex-row">
+      {/* KIRI / UTAMA: Kanvas 3D Interaktif dengan Grid Teknik HTML */}
       <div className="relative h-full w-full md:w-[60%]">
+        <div className="bg-engineering-grid pointer-events-none absolute inset-0 opacity-70" />
         <StudioCanvas3D payload={payload} resetSignal={resetSignal} />
 
-        {/* Top Floating Bar */}
-        <header className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-center justify-between gap-2 px-3 pt-[max(env(safe-area-inset-top),0.75rem)]">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-white/90 px-3 text-xs font-semibold text-navy shadow-soft backdrop-blur"
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={1.6} />
-            Kembali
-          </button>
+        {/* FLOATING TOP BAR (Sesuai Prototipe HTML Visualisasi 3D) */}
+        <header className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 pt-[max(env(safe-area-inset-top),1.25rem)]">
+          <div className="flex items-start justify-between gap-2">
+            <button
+              type="button"
+              aria-label="Kembali"
+              onClick={() => navigate(-1)}
+              className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/90 text-navy shadow-soft backdrop-blur-md transition-colors active:bg-slate-100"
+            >
+              <ArrowLeft className="h-5 w-5" strokeWidth={1.8} />
+            </button>
 
-          <div className="pointer-events-auto truncate rounded-full bg-navy/95 px-3.5 py-1.5 text-xs font-bold text-white shadow-soft backdrop-blur">
-            {activeComp ? (
-              <span>
-                <span className="font-mono text-sky-light">{activeComp.code}</span>{' '}
-                • {activeComp.name}
-              </span>
-            ) : (
-              payload.title
-            )}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-navy-light bg-navy px-4 py-2 text-xs font-semibold text-white shadow-premium">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-sky" />
+                <span className="max-w-[190px] truncate">
+                  {activeComp
+                    ? `Menyorot: ${activeComp.code} ${activeComp.name}`
+                    : payload.title}
+                </span>
+              </div>
+
+              <div className="pointer-events-auto rounded-full border border-white/50 bg-white/90 px-3 py-1 text-[10px] font-bold text-navy shadow-soft backdrop-blur-md">
+                {payload.components.length} Komponen • {zoomLevel.toFixed(1)}x
+              </div>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Reset Kamera 3D"
+              onClick={handleResetCamera}
+              className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/90 text-slate-500 shadow-soft backdrop-blur-md transition-colors active:text-navy"
+            >
+              <RefreshCw className="h-5 w-5" strokeWidth={1.8} />
+            </button>
           </div>
-
-          <button
-            type="button"
-            aria-label="Reset Kamera 3D"
-            onClick={handleResetCamera}
-            className="pointer-events-auto inline-flex min-h-11 items-center gap-1 rounded-xl bg-white/90 px-3 text-xs font-semibold text-navy shadow-soft backdrop-blur"
-          >
-            <RotateCcw className="h-4 w-4" strokeWidth={1.6} />
-            <span className="hidden sm:inline">Reset</span>
-          </button>
         </header>
 
-        {/* Kontrol Sisi Kanan: Zoom & Explode Halus */}
-        <aside className="absolute right-3 top-24 z-20 flex flex-col items-center gap-2 rounded-2xl border border-border bg-white/90 px-2.5 py-3 shadow-soft backdrop-blur">
-          <Layers className="h-4 w-4 text-navy" strokeWidth={1.5} />
-          <span className="font-mono text-[10px] font-bold text-sky">
+        {/* Kontrol Sisi Kanan: Explode Slider */}
+        <aside className="absolute right-3 top-28 z-20 flex flex-col items-center gap-2 rounded-full border border-white/60 bg-white/90 px-2 py-3.5 shadow-soft backdrop-blur-md">
+          <Layers className="h-4 w-4 text-sky" strokeWidth={1.7} />
+          <span className="font-mono text-[10px] font-bold text-navy">
             {Math.round(explodeFactor * 100)}%
           </span>
           <input
@@ -123,9 +129,6 @@ export default function Studio3DScreen() {
             onChange={(e) => setManualExplode(Number(e.target.value) / 100)}
             className="h-24 w-2 cursor-pointer accent-navy [writing-mode:vertical-lr] [direction:rtl]"
           />
-          <span className="font-mono text-[10px] text-text-secondary">
-            {zoomLevel.toFixed(1)}x
-          </span>
         </aside>
       </div>
 
@@ -161,7 +164,6 @@ export default function Studio3DScreen() {
                 Ringkasan karya, denah potongan, dan detail komponen
               </Drawer.Description>
 
-              {/* Drag Handle */}
               <div className="flex shrink-0 justify-center py-3">
                 <div className="h-1.5 w-12 rounded-full bg-slate-300" />
               </div>

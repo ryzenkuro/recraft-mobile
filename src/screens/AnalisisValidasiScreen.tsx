@@ -1,13 +1,13 @@
 import {
   ArrowLeft,
-  Check,
+  CheckCircle2,
   Droplets,
-  Layers,
+  GitCommit,
+  Paperclip,
   PenTool,
   Ruler,
   Scissors,
-  Sparkles,
-  Spline,
+  Settings2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -21,20 +21,30 @@ import { useStudioStore } from '@/store/studioStore';
 import type { CraftTargetOption, ToolOption } from '@/types';
 import { triggerHaptic } from '@/utils/haptics';
 
-function ToolIcon({ iconName }: { iconName: ToolOption['iconName'] }) {
+function ToolIcon({
+  iconName,
+  selected,
+}: {
+  iconName: ToolOption['iconName'];
+  selected: boolean;
+}) {
+  const cls = `h-10 w-10 transition-colors duration-300 ${
+    selected ? 'text-success' : 'text-slate-400'
+  }`;
+
   switch (iconName) {
     case 'pen-tool':
-      return <PenTool className="h-5 w-5" strokeWidth={1.5} />;
+      return <PenTool className={cls} strokeWidth={1.5} />;
     case 'ruler':
-      return <Ruler className="h-5 w-5" strokeWidth={1.5} />;
+      return <Ruler className={cls} strokeWidth={1.5} />;
     case 'scissors':
-      return <Scissors className="h-5 w-5" strokeWidth={1.5} />;
+      return <Scissors className={cls} strokeWidth={1.5} />;
     case 'droplets':
-      return <Droplets className="h-5 w-5" strokeWidth={1.5} />;
-    case 'spline':
-      return <Spline className="h-5 w-5" strokeWidth={1.5} />;
-    case 'layers':
-      return <Layers className="h-5 w-5" strokeWidth={1.5} />;
+      return <Droplets className={cls} strokeWidth={1.5} />;
+    case 'git-commit':
+      return <GitCommit className={cls} strokeWidth={1.5} />;
+    case 'paperclip':
+      return <Paperclip className={cls} strokeWidth={1.5} />;
   }
 }
 
@@ -97,10 +107,7 @@ export default function AnalisisValidasiScreen() {
 
   const handleGenerate3D = async () => {
     if (!selectedTargetId || selectedToolIds.length === 0) return;
-
-    if (!result) {
-      setResult(activeScan);
-    }
+    if (!result) setResult(activeScan);
 
     setIsGenerating(true);
     try {
@@ -116,16 +123,15 @@ export default function AnalisisValidasiScreen() {
       addProject({
         id: payload.projectId,
         name: payload.title,
-        thumbnail:
-          chosenTarget?.thumbnail ??
-          activeScan.photoUrl,
+        thumbnail: chosenTarget?.thumbnail ?? activeScan.photoUrl,
+        iconHint: 'box',
         materialLabel: payload.primaryScrapMaterial,
         dimensionsCm: activeScan.dimensions,
         componentCount: payload.components.length,
         estimatedValueRangeIdr: payload.estimatedValueRangeIdr,
         offlineAvailable: true,
         inProduction: false,
-        lastUpdatedLabel: 'Baru saja',
+        lastUpdatedLabel: 'Baru saja dibuat',
       });
 
       void triggerHaptic('MEDIUM');
@@ -142,105 +148,86 @@ export default function AnalisisValidasiScreen() {
   const canGenerate = selectedToolIds.length > 0 && selectedTargetId !== null;
 
   return (
-    <div className="flex min-h-full flex-col bg-surface pt-[max(env(safe-area-inset-top),0.75rem)] pb-[max(env(safe-area-inset-bottom),1.25rem)]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-sky-lighter to-surface">
       <LoadingOverlay
         isVisible={isGenerating}
         steps={scanService.getAnalysisSteps()}
-        subtitle="Menyusun stabilitas struktur & model 3D Direct-to-Studio..."
       />
 
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border bg-white px-4 py-2.5">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="inline-flex min-h-12 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-navy"
-        >
-          <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-          Kembali
-        </button>
-        <span className="font-mono text-xs font-semibold text-text-secondary">
-          Validasi Studio
-        </span>
-      </header>
+      {/* Header (Sesuai HTML: Tombol bulat + Badge + Cek Alat & Bahan) */}
+      <header className="z-20 shrink-0 px-4 pb-4 pt-[max(env(safe-area-inset-top),1.25rem)]">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Kembali"
+            onClick={() => navigate(-1)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-navy shadow-soft transition-colors active:bg-slate-50"
+          >
+            <ArrowLeft className="h-5 w-5" strokeWidth={1.8} />
+          </button>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4">
-        {/* Ringkasan Bahan Terdeteksi */}
-        <section className="flex items-center justify-between rounded-2xl border border-border bg-white p-4 shadow-soft">
           <div>
-            <span className="text-xs font-semibold text-sky">
-              Material Terkalibrasi
+            <span className="rounded-sm bg-sky-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-navy">
+              Validasi Studio
             </span>
-            <h1 className="text-base font-bold text-navy">
-              {activeScan.materialType}
+            <h1 className="mt-1 text-xl font-bold leading-tight text-navy">
+              Cek Alat &amp; Bahan
             </h1>
-          </div>
-          <span className="rounded-xl bg-sky-lighter px-3 py-1.5 font-mono text-xs font-bold text-navy">
-            {activeScan.dimensions.panjang} × {activeScan.dimensions.lebar} ×{' '}
-            {activeScan.dimensions.tinggi} cm
-          </span>
-        </section>
-
-        {/* Grid 2x3 Alat & Bahan Pendukung */}
-        <section>
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-base font-bold text-navy">
-              Alat & Bahan yang Dimiliki
-            </h2>
-            <span className="font-mono text-xs text-text-secondary">
-              {selectedToolIds.length} dipilih
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {tools.map((tool) => {
-              const selected = selectedToolIds.includes(tool.id);
-              return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => handleToggleTool(tool.id)}
-                  className={`relative flex min-h-16 items-center gap-3 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.98] ${
-                    selected
-                      ? 'border-success bg-success-light/40 shadow-soft'
-                      : 'border-border bg-white hover:border-sky/50'
-                  }`}
-                >
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                      selected
-                        ? 'bg-success text-white'
-                        : 'bg-sky-lighter text-navy'
-                    }`}
-                  >
-                    <ToolIcon iconName={tool.iconName} />
-                  </div>
-                  <span className="text-sm font-semibold text-navy">
-                    {tool.name}
-                  </span>
-                  {selected && (
-                    <span className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-success text-white">
-                      <Check className="h-3 w-3" strokeWidth={2.5} />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Carousel Pilihan Target Karya */}
-        <section>
-          <div className="mb-3">
-            <h2 className="text-base font-bold text-navy">
-              Pilih Target Karya Inovasi
-            </h2>
-            <p className="text-xs text-text-secondary">
-              Rekomendasi struktur yang cocok dengan dimensi bahan Anda
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Mana saja yang tersedia di dekatmu? (
+              <span className="font-mono font-semibold text-navy">
+                {activeScan.dimensions.panjang}×{activeScan.dimensions.lebar}×
+                {activeScan.dimensions.tinggi} cm
+              </span>
+              )
             </p>
           </div>
+        </div>
+      </header>
 
-          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+      {/* Main Content */}
+      <main className="hide-scrollbar z-10 mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-4 pb-28">
+        {/* Grid 2x3 Kartu Tinggi h-36 (Sesuai HTML) */}
+        <div className="mt-2 grid grid-cols-2 gap-4">
+          {tools.map((tool) => {
+            const selected = selectedToolIds.includes(tool.id);
+            return (
+              <button
+                key={tool.id}
+                type="button"
+                onClick={() => handleToggleTool(tool.id)}
+                className={`relative flex h-36 flex-col items-center justify-center gap-3 rounded-2xl border-2 p-5 transition-all duration-300 active:scale-95 ${
+                  selected
+                    ? 'border-success bg-[#F0FDF4] shadow-[0_0_20px_rgba(22,163,74,0.2)]'
+                    : 'border-border bg-white shadow-soft'
+                }`}
+              >
+                <ToolIcon iconName={tool.iconName} selected={selected} />
+                <span
+                  className={`text-center text-sm font-semibold leading-tight transition-colors duration-300 ${
+                    selected ? 'text-success' : 'text-slate-500'
+                  }`}
+                >
+                  {tool.name}
+                </span>
+                <div
+                  className={`absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-all duration-300 ${
+                    selected ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
+                  }`}
+                >
+                  <CheckCircle2 className="h-5 w-5 text-success" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Pilihan Target Karya (Untuk Direct-to-3D Opsi A) */}
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-bold text-navy">
+            Pilih Target Karya 3D
+          </h2>
+          <div className="hide-scrollbar flex gap-3 overflow-x-auto pb-2">
             {targets.map((target) => {
               const isSelected = selectedTargetId === target.id;
               return (
@@ -248,33 +235,28 @@ export default function AnalisisValidasiScreen() {
                   key={target.id}
                   type="button"
                   onClick={() => handleSelectTarget(target.id)}
-                  className={`w-64 shrink-0 snap-start overflow-hidden rounded-2xl border bg-white text-left transition-all active:scale-[0.98] ${
+                  className={`w-56 shrink-0 overflow-hidden rounded-2xl border-2 bg-white text-left transition-all active:scale-[0.98] ${
                     isSelected
-                      ? 'border-sky ring-2 ring-sky/30 shadow-premium'
+                      ? 'border-sky shadow-premium'
                       : 'border-border shadow-soft'
                   }`}
                 >
                   <img
                     src={target.thumbnail}
                     alt={target.name}
-                    className="h-28 w-full object-cover"
+                    className="h-24 w-full object-cover"
                   />
-                  <div className="p-3.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-bold text-navy">
-                        {target.name}
-                      </h3>
-                      <span className="rounded-full bg-sky-lighter px-2 py-0.5 font-mono text-[10px] font-bold text-navy">
-                        {target.componentCount} part
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-xs text-text-secondary">
+                  <div className="p-3">
+                    <h3 className="truncate text-sm font-bold text-navy">
+                      {target.name}
+                    </h3>
+                    <p className="mt-0.5 truncate text-[11px] text-text-secondary">
                       {target.subtitle}
                     </p>
-                    <div className="mt-2.5 inline-block rounded-full bg-success-light px-2.5 py-0.5 text-[11px] font-semibold text-success">
-                      Potensi: Rp {target.estimatedValueRangeIdr[0].toLocaleString('id-ID')} – Rp{' '}
-                      {target.estimatedValueRangeIdr[1].toLocaleString('id-ID')}
-                    </div>
+                    <span className="mt-2 inline-block rounded-full bg-success-light px-2 py-0.5 text-[10px] font-semibold text-success">
+                      Potensi Rp {(target.estimatedValueRangeIdr[0] / 1000).toFixed(0)}rb–
+                      {(target.estimatedValueRangeIdr[1] / 1000).toFixed(0)}rb
+                    </span>
                   </div>
                 </button>
               );
@@ -283,15 +265,15 @@ export default function AnalisisValidasiScreen() {
         </section>
       </main>
 
-      {/* Bottom Primary CTA */}
-      <footer className="mx-auto w-full max-w-2xl border-t border-border bg-white px-4 pt-3">
+      {/* Sticky Footer */}
+      <footer className="absolute bottom-0 z-20 w-full shrink-0 border-t border-border bg-white/90 px-4 pt-4 pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-up backdrop-blur-md">
         <button
           type="button"
           disabled={!canGenerate || isGenerating}
           onClick={handleGenerate3D}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-navy px-6 font-semibold text-white shadow-premium transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+          className="mx-auto flex w-full max-w-2xl items-center justify-center gap-2 rounded-[12px] bg-navy py-4 text-sm font-bold text-white shadow-premium transition-transform active:scale-[0.98] disabled:opacity-45"
         >
-          <Sparkles className="h-5 w-5" strokeWidth={1.8} />
+          <Settings2 className="h-[18px] w-[18px]" strokeWidth={1.8} />
           Generate Desain 3D
         </button>
       </footer>

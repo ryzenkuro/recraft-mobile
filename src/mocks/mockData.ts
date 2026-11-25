@@ -12,28 +12,30 @@ import type { Studio3DPayload } from '@/types/studio';
 
 export const DEFAULT_STUDIO_PROJECT_ID = 'P1';
 export const DEFAULT_PRODUCT_ID = 'PROD_001';
+export const SCAN_CAMERA_BG_URL =
+  'https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?auto=format&fit=crop&q=80&w=800&h=1600';
 
 export const mockAnalysisSteps: readonly string[] = [
-  'Menganalisis kekuatan bahan...',
-  'Merancang arsitektur potongan...',
-  'Membangun model 3D...',
+  'Mengenali bahan...',
+  'Menyusun draf struktur...',
+  'Menyiapkan daftar alat...',
 ];
 
 export const mockScanResults: ScanResult[] = [
   {
     id: 'SCAN_001',
-    materialType: 'Kardus Kraft Gelombang Ganda',
+    materialType: 'Kardus Bekas',
     dimensions: { panjang: 45, lebar: 30, tinggi: 25 },
-    confidence: 0.96,
+    confidence: 0.98,
     photoUrl: 'https://images.unsplash.com/photo-1626512316698-3a1c09ce29a0?w=600',
     timestampIso: '2026-11-25T07:00:00.000Z',
     detectedMaterials: ['Kardus Kraft 5mm', 'Serat Daur Ulang'],
   },
   {
     id: 'SCAN_002',
-    materialType: 'Botol Plastik PET 1.5L',
+    materialType: 'Botol Plastik PET',
     dimensions: { panjang: 20, lebar: 10, tinggi: 32 },
-    confidence: 0.91,
+    confidence: 0.92,
     photoUrl: 'https://images.unsplash.com/photo-1614707267537-b85faf00021e?w=600',
     timestampIso: '2026-11-25T06:30:00.000Z',
     detectedMaterials: ['Plastik PET Bening', 'Tutup HDPE'],
@@ -43,10 +45,10 @@ export const mockScanResults: ScanResult[] = [
 export const mockTools: ToolOption[] = [
   { id: 'T1', name: 'Cutter', available: true, iconName: 'pen-tool' },
   { id: 'T2', name: 'Penggaris Besi', available: true, iconName: 'ruler' },
-  { id: 'T3', name: 'Gunting', available: true, iconName: 'scissors' },
-  { id: 'T4', name: 'Lem Tembak', available: false, iconName: 'droplets' },
-  { id: 'T5', name: 'Tali Rami', available: false, iconName: 'spline' },
-  { id: 'T6', name: 'Selotip Kertas', available: true, iconName: 'layers' },
+  { id: 'T3', name: 'Lem Tembak', available: false, iconName: 'droplets' },
+  { id: 'T4', name: 'Gunting', available: true, iconName: 'scissors' },
+  { id: 'T5', name: 'Tali / Benang', available: false, iconName: 'git-commit' },
+  { id: 'T6', name: 'Selotip Kertas', available: true, iconName: 'paperclip' },
 ];
 
 export const mockCraftTargets: CraftTargetOption[] = [
@@ -54,31 +56,37 @@ export const mockCraftTargets: CraftTargetOption[] = [
     id: 'TARGET_01',
     studioProjectId: 'P1',
     name: 'Rak Modular Mini',
-    subtitle: 'Sambungan selip kunci tanpa lem panas',
+    subtitle: 'Sambungan selip kunci presisi',
+    durationLabel: '2-3 jam',
     primaryMaterial: 'Kardus Kraft',
     estimatedValueRangeIdr: [55000, 85000],
     componentCount: 5,
-    thumbnail: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+    thumbnail:
+      'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: 'TARGET_02',
     studioProjectId: 'P2',
-    name: 'Lampu Meja Geometris',
+    name: 'Lampu Gantung',
     subtitle: 'Kap lipat poligonal hemat cahaya',
-    primaryMaterial: 'Kardus + PET',
+    durationLabel: '3-4 jam',
+    primaryMaterial: 'Kardus & PET',
     estimatedValueRangeIdr: [75000, 110000],
     componentCount: 4,
-    thumbnail: 'https://images.unsplash.com/photo-1565636192335-14c46fa1120d?w=400',
+    thumbnail:
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&q=80&w=400',
   },
   {
     id: 'TARGET_03',
     studioProjectId: 'P3',
-    name: 'Pot Hidroponik Vertikal',
+    name: 'Pot Hidroponik',
     subtitle: 'Sistem sumbu kapiler hemat air',
-    primaryMaterial: 'Botol PET',
+    durationLabel: '1-2 jam',
+    primaryMaterial: 'Botol Plastik',
     estimatedValueRangeIdr: [45000, 70000],
     componentCount: 4,
-    thumbnail: 'https://images.unsplash.com/photo-1517919272601-b04fb111ce4d?w=400',
+    thumbnail:
+      'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=400',
   },
 ];
 
@@ -232,7 +240,7 @@ export const mockStudioPayloads: Record<string, Studio3DPayload> = {
   },
   P2: {
     projectId: 'P2',
-    title: 'Lampu Meja Geometris',
+    title: 'Lampu Gantung',
     architectureSummary:
       'Kap lampu faset poligonal berpendingin pasif dengan rangka lipat segienam yang menghasilkan pendaran cahaya hangat.',
     primaryScrapMaterial: 'Kardus Kraft + Diffuser Botol PET',
@@ -249,7 +257,7 @@ export const mockStudioPayloads: Record<string, Studio3DPayload> = {
         meshPosition: [0, -0.5, 0],
         meshSize: [1.1, 0.12, 1.1],
         colorHex: '#B6895B',
-        materialNote: 'Alas berlapis ganda dengan pemberat pasif agar stabil di meja kerja.',
+        materialNote: 'Alas berlapis ganda dengan pemberat pasif agar stabil.',
         cuttingNote: 'Potong segi enam beraturan diameter 18 cm dengan lubang kabel 10 mm.',
         foldingNote: 'Tekuk bibir bawah 1,2 cm ke dalam untuk penyangga soket.',
         assemblyNote: 'Mengunci pilar penyangga C02 dan rangka kap C03 dari bagian dasar.',
@@ -312,59 +320,75 @@ export const mockProjects: ProjectSummary[] = [
   {
     id: 'P1',
     name: 'Rak Modular Mini',
-    thumbnail: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300',
+    thumbnail:
+      'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=300',
+    iconHint: 'box',
     materialLabel: 'Kardus Kraft 5mm',
     dimensionsCm: { panjang: 45, lebar: 30, tinggi: 25 },
     componentCount: 5,
     estimatedValueRangeIdr: [55000, 85000],
     offlineAvailable: true,
     inProduction: false,
-    lastUpdatedLabel: '2 jam lalu',
+    lastUpdatedLabel: 'Diperbarui 2 jam lalu',
   },
   {
     id: 'P2',
-    name: 'Lampu Meja Geometris',
-    thumbnail: 'https://images.unsplash.com/photo-1565636192335-14c46fa1120d?w=300',
+    name: 'Lampu Gantung',
+    thumbnail:
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&q=80&w=300',
+    iconHint: 'lamp',
     materialLabel: 'Kardus + Botol PET',
-    dimensionsCm: { panjang: 20, lebar: 20, tinggi: 30 },
+    dimensionsCm: { panjang: 15, lebar: 15, tinggi: 20 },
     componentCount: 4,
     estimatedValueRangeIdr: [75000, 110000],
     offlineAvailable: true,
     inProduction: false,
-    lastUpdatedLabel: '3 hari lalu',
+    lastUpdatedLabel: 'Diperbarui kemarin',
   },
   {
     id: 'P3',
-    name: 'Pot Hidroponik Vertikal',
-    thumbnail: 'https://images.unsplash.com/photo-1517919272601-b04fb111ce4d?w=300',
-    materialLabel: 'Botol Plastik PET',
-    dimensionsCm: { panjang: 30, lebar: 30, tinggi: 20 },
+    name: 'Kotak Penyimpanan',
+    thumbnail:
+      'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=300',
+    iconHint: 'archive',
+    materialLabel: 'Kardus & Palet',
+    dimensionsCm: { panjang: 30, lebar: 20, tinggi: 15 },
     componentCount: 4,
     estimatedValueRangeIdr: [45000, 70000],
     offlineAvailable: false,
     inProduction: true,
-    productionNote: 'Batch 5 unit • Tahap perakitan sumbu (Kolaborasi Bandung)',
-    lastUpdatedLabel: 'Kemarin',
+    productionNote: 'Kolaborasi Bandung • Siap dirakit',
+    lastUpdatedLabel: 'Baru saja dibuat',
   },
 ];
 
 export const mockMarketProducts: MarketProduct[] = [
   {
     id: 'PROD_001',
-    name: 'Lampu Meja Geo Upcycle',
+    name: 'Lampu Meja Geo dari Kardus',
     priceIdr: 85000,
     images: [
-      'https://images.unsplash.com/photo-1565636192335-14c46fa1120d?w=600',
-      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600',
+      'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&q=80&w=800',
     ],
-    originMaterialBadge: 'Dari Kardus Kraft',
+    originMaterialBadge: 'Kardus',
     description:
-      'Lampu meja minimalis hasil rekayasa RE-CRAFT Studio menggunakan kardus kraft pilihan dengan lapisan pelindung tahan lembap dan diffuser PET daur ulang.',
+      'Lampu meja geometris ini dirancang dengan prinsip upcycling dari limbah kardus tebal berkualitas. Cocok untuk menambah aksen hangat di meja kerja atau kamar tidur Anda.',
+    sustainabilityNote:
+      'Produk ini menyelamatkan 500gr kardus dari TPA dan mengurangi jejak karbon produksi baru.',
+    careInstructions: [
+      'Gunakan bohlam LED max 5W (panas rendah)',
+      'Bersihkan dengan kemoceng kering',
+      'Jauhkan dari area lembab/air',
+    ],
     dimensionsText: '20,0 × 20,0 × 30,0 cm',
     weightGrams: 420,
+    soldCountLabel: 'Terjual 150+',
     seller: {
       id: 'SELLER_1',
       name: 'Studio Kriya Jabar',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100',
       location: 'Bandung Raya',
       rating: 4.8,
       verified: true,
@@ -374,17 +398,28 @@ export const mockMarketProducts: MarketProduct[] = [
   },
   {
     id: 'PROD_002',
-    name: 'Pot Hidroponik Mini',
-    priceIdr: 65000,
-    images: ['https://images.unsplash.com/photo-1517919272601-b04fb111ce4d?w=600'],
-    originMaterialBadge: 'Dari Botol PET',
+    name: 'Desk Organizer',
+    priceIdr: 120000,
+    images: [
+      'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&q=80&w=400',
+    ],
+    originMaterialBadge: 'Kardus & Botol',
     description:
-      'Pot tanaman sistem kapiler otomatis dari botol PET tebal yang dipotong presisi dengan finishing cat matte ramah lingkungan.',
-    dimensionsText: '18,0 × 18,0 × 22,0 cm',
-    weightGrams: 310,
+      'Pengatur meja kerja berlaci modular dari kombinasi kardus gelombang ganda dan kompartemen botol PET daur ulang.',
+    sustainabilityNote:
+      'Mengolah 3 botol plastik PET dan 400gr kardus kemasan menjadi furnitur meja.',
+    careInstructions: [
+      'Lap perlahan dengan kain mikrofiber kering',
+      'Hindari beban berlebih di atas 4 kg',
+    ],
+    dimensionsText: '30,0 × 20,0 × 18,0 cm',
+    weightGrams: 540,
+    soldCountLabel: 'Terjual 85+',
     seller: {
       id: 'SELLER_2',
       name: 'Kreator RE-CRAFT',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100',
       location: 'Jakarta Selatan',
       rating: 4.9,
       verified: true,
@@ -394,19 +429,30 @@ export const mockMarketProducts: MarketProduct[] = [
   },
   {
     id: 'PROD_003',
-    name: 'Rak Modular Meja Kerja',
-    priceIdr: 125000,
-    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'],
-    originMaterialBadge: 'Dari Kardus Double-Wall',
+    name: 'Pot Self-Watering',
+    priceIdr: 45000,
+    images: [
+      'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=400',
+    ],
+    originMaterialBadge: 'Botol Plastik',
     description:
-      'Rak meja modular sistem selip kunci berkekuatan struktural tinggi, sanggup menopang buku, alat tulis, dan aksesori meja hingga 4,5 kg.',
-    dimensionsText: '45,0 × 30,0 × 25,0 cm',
-    weightGrams: 780,
+      'Pot tanaman hias sistem kapiler otomatis berbahan botol PET bekas yang dipotong presisi dengan finishing matte.',
+    sustainabilityNote:
+      'Mendaur ulang 2 botol plastik sekali pakai per unit pot.',
+    careInstructions: [
+      'Isi ulang reservoir air tiap 5–7 hari',
+      'Bilas sumbu kain setiap pergantian media tanam',
+    ],
+    dimensionsText: '14,0 × 14,0 × 18,0 cm',
+    weightGrams: 240,
+    soldCountLabel: 'Terjual 210+',
     seller: {
-      id: 'SELLER_1',
-      name: 'Studio Kriya Jabar',
-      location: 'Bandung Raya',
-      rating: 4.8,
+      id: 'SELLER_3',
+      name: 'Craft Studio Surabaya',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100',
+      location: 'Surabaya',
+      rating: 4.7,
       verified: true,
     },
     rating: 4.7,
@@ -414,63 +460,34 @@ export const mockMarketProducts: MarketProduct[] = [
   },
   {
     id: 'PROD_004',
-    name: 'Desk Organizer Sekat',
-    priceIdr: 48000,
-    images: ['https://images.unsplash.com/photo-1584914179456-cd8e4a3c3bdf?w=600'],
-    originMaterialBadge: 'Dari Kardus Kraft',
+    name: 'Rak Gantung Hexa',
+    priceIdr: 150000,
+    images: [
+      'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=400',
+    ],
+    originMaterialBadge: 'Kayu Palet',
     description:
-      'Kotak pengatur alat tulis ringkas dengan 4 kompartemen presisi dan permukaan lapis varnish water-based.',
-    dimensionsText: '24,0 × 15,0 × 12,0 cm',
-    weightGrams: 260,
-    seller: {
-      id: 'SELLER_3',
-      name: 'Craft Studio Surabaya',
-      location: 'Surabaya',
-      rating: 4.6,
-      verified: true,
-    },
-    rating: 4.6,
-    reviews: 15,
-  },
-  {
-    id: 'PROD_005',
-    name: 'Tas Kanvas Perca Modular',
-    priceIdr: 58000,
-    images: ['https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600'],
-    originMaterialBadge: 'Dari Kain Perca',
-    description:
-      'Tas belanja lipat bertulang ganda dengan jahitan penguat silang dari limbah konveksi lokal.',
-    dimensionsText: '38,0 × 12,0 × 40,0 cm',
-    weightGrams: 210,
+      'Rak dinding heksagonal dari kayu palet bekas yang diamplas halus dan dilapisi pelindung water-based.',
+    sustainabilityNote:
+      'Memanfaatkan limbah kayu palet logistik lokal dengan sambungan presisi.',
+    careInstructions: [
+      'Pasang menggunakan fischer dinding standar',
+      'Hindari paparan hujan langsung',
+    ],
+    dimensionsText: '36,0 × 12,0 × 32,0 cm',
+    weightGrams: 920,
+    soldCountLabel: 'Terjual 60+',
     seller: {
       id: 'SELLER_4',
-      name: 'EcoMaker Bali',
-      location: 'Denpasar',
-      rating: 4.7,
-      verified: true,
-    },
-    rating: 4.7,
-    reviews: 28,
-  },
-  {
-    id: 'PROD_006',
-    name: 'Kotak Arsip Lipat Presisi',
-    priceIdr: 95000,
-    images: ['https://images.unsplash.com/photo-1458642849426-cfb724f15ef7?w=600'],
-    originMaterialBadge: 'Dari Kardus Industri',
-    description:
-      'Kotak penyimpanan dokumen A4 sistem penguncian slot-and-tab tanpa sekrup logam.',
-    dimensionsText: '34,0 × 25,0 × 26,0 cm',
-    weightGrams: 640,
-    seller: {
-      id: 'SELLER_2',
-      name: 'Kreator RE-CRAFT',
-      location: 'Jakarta Selatan',
-      rating: 4.9,
+      name: 'Kriya Jogja',
+      avatarUrl:
+        'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100',
+      location: 'Yogyakarta',
+      rating: 4.8,
       verified: true,
     },
     rating: 4.8,
-    reviews: 41,
+    reviews: 15,
   },
 ];
 
@@ -516,7 +533,7 @@ export const mockCollabProposals: CollabProposal[] = [
     materialTitle: 'Botol PET Bening Bersih (50 pcs)',
     artisanName: 'Kreator RE-CRAFT',
     linkedStudioId: 'P2',
-    linkedStudioTitle: 'Lampu Meja Geometris',
+    linkedStudioTitle: 'Lampu Gantung',
     revenueSplitLabel: '75% Perajin : 25% Penyedia',
     status: 'MENUNGGU',
   },
@@ -524,17 +541,18 @@ export const mockCollabProposals: CollabProposal[] = [
 
 export const mockUserProfile: UserProfile = {
   id: 'USER_001',
-  name: 'Raya Mahendra',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Raya',
-  location: 'Bandung Raya',
+  name: 'Kreator RE-CRAFT',
+  initials: 'KR',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kreator',
+  location: 'Jakarta Selatan',
   verified: true,
   activeRole: 'PERAJIN',
   roles: ['PEMBELI', 'PENYEDIA', 'PERAJIN'],
-  balanceIdr: 425000,
+  balanceIdr: 450000,
   impactStats: {
-    scrapSavedKg: 14.8,
-    projectsBuilt: 6,
-    estimatedValueCreatedIdr: 540000,
+    projectsCompleted: 3,
+    itemsManaged: 12,
+    co2SavedKg: 2.4,
   },
   revenueHistory: [
     {
@@ -546,9 +564,9 @@ export const mockUserProfile: UserProfile = {
     },
     {
       id: 'REV_002',
-      title: 'Penjualan Lampu Meja Geo Upcycle',
+      title: 'Penjualan Lampu Meja Geo',
       dateLabel: '18 Nov 2026',
-      amountIdr: 230000,
+      amountIdr: 255000,
       type: 'PENJUALAN',
     },
   ],

@@ -2,31 +2,42 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import {
   AlertCircle,
-  ArrowLeft,
+  Box,
   CheckCircle2,
+  Edit3,
   Image as ImageIcon,
-  Keyboard,
-  RefreshCw,
+  Pencil,
+  PenTool,
+  RotateCcw,
+  ShieldCheck,
   ShoppingBag,
-  Sparkles,
+  X,
+  Zap,
 } from 'lucide-react';
-import { type ChangeEvent, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { type ChangeEvent, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
+import { SCAN_CAMERA_BG_URL } from '@/mocks';
 import { scanService } from '@/services/scanService';
 import { useScanStore } from '@/store/scanStore';
 import { triggerHaptic } from '@/utils/haptics';
 
-const SCAN_LOADING_STEPS = [
-  'Mendeteksi tepi barang bekas...',
-  'Mengkalibrasi skala dimensi cm...',
-  'Mengidentifikasi jenis material...',
+const SCAN_CALIBRATION_STEPS = [
+  'Mendeteksi sudut objek...',
+  'Mengkalibrasi skala cm...',
+  'Mengidentifikasi bahan bekas...',
 ] as const;
 
 export default function ScanScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [scanMode, setScanMode] = useState<'OBJEK' | 'RUANG'>(
+    searchParams.get('mode') === 'ruang' ? 'RUANG' : 'OBJEK'
+  );
+  const [flashOn, setFlashOn] = useState(false);
 
   const {
     scanState,
@@ -95,217 +106,239 @@ export default function ScanScreen() {
   };
 
   const handleOfferToMarket = () => {
-    toast.success('Dimensi material disiapkan untuk penawaran Pasar.');
+    toast.success('Dimensi material disiapkan untuk ditawarkan di Pasar.');
     navigate('/pasar?tab=bahan');
   };
 
   return (
-    <div className="relative flex min-h-full flex-col bg-slate-950 text-white pt-[max(env(safe-area-inset-top),0.75rem)] pb-[max(env(safe-area-inset-bottom),1.25rem)]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-900 text-white">
       <LoadingOverlay
         isVisible={scanState === 'PROCESSING'}
-        steps={SCAN_LOADING_STEPS}
-        subtitle="Mengkalibrasi ukuran dan material barang bekas..."
+        steps={SCAN_CALIBRATION_STEPS}
       />
 
-      {/* Top Floating Bar */}
-      <header className="z-20 flex items-center justify-between px-4 py-2">
+      {/* Background Simulated Camera Feed (Sesuai Prototipe HTML) */}
+      <img
+        src={result?.photoUrl || SCAN_CAMERA_BG_URL}
+        alt="Camera Feed Background"
+        className="absolute inset-0 z-0 h-full w-full object-cover opacity-70"
+      />
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-navy via-slate-800/80 to-sky/30 opacity-80 mix-blend-multiply" />
+      <div className="absolute inset-0 z-0 bg-black/25" />
+
+      {/* Top Bar (Transparent) */}
+      <header className="z-20 flex shrink-0 items-center justify-between px-4 pb-4 pt-[max(env(safe-area-inset-top),1.25rem)]">
         <button
           type="button"
+          aria-label="Tutup kamera"
           onClick={() => navigate(-1)}
-          className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white/10 px-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-colors active:bg-black/60"
         >
-          <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-          Kembali
+          <X className="h-5 w-5" strokeWidth={1.8} />
         </button>
 
-        <span className="rounded-full bg-navy/90 px-3 py-1 font-mono text-xs font-bold text-sky-light">
-          RE-CRAFT Scan
-        </span>
+        {/* Mode Switcher: Objek | Ruang */}
+        <div className="flex items-center rounded-full bg-black/40 p-1 shadow-lg backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => setScanMode('OBJEK')}
+            className={`rounded-full px-4 py-1.5 text-xs transition-all ${
+              scanMode === 'OBJEK'
+                ? 'bg-white font-semibold text-navy shadow-sm'
+                : 'font-medium text-white/80 active:text-white'
+            }`}
+          >
+            Objek
+          </button>
+          <button
+            type="button"
+            onClick={() => setScanMode('RUANG')}
+            className={`rounded-full px-4 py-1.5 text-xs transition-all ${
+              scanMode === 'RUANG'
+                ? 'bg-white font-semibold text-navy shadow-sm'
+                : 'font-medium text-white/80 active:text-white'
+            }`}
+          >
+            Ruang
+          </button>
+        </div>
+
+        <button
+          type="button"
+          aria-label="Flash"
+          onClick={() => {
+            setFlashOn((prev) => !prev);
+            toast.info(flashOn ? 'Lampu kilat dimatikan' : 'Lampu kilat aktif (simulasi)');
+          }}
+          className={`flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors ${
+            flashOn
+              ? 'bg-amber-400 text-slate-950'
+              : 'bg-black/40 text-white active:bg-black/60'
+          }`}
+        >
+          <Zap className="h-5 w-5" strokeWidth={1.8} />
+        </button>
       </header>
 
-      {/* STATE 1: IDLE VIEWFINDER + SMART SCALE-BOX */}
-      {scanState === 'IDLE' && (
-        <div className="flex flex-1 flex-col justify-between px-5 pt-2">
-          <div className="mx-auto mt-2 rounded-full border border-sky/40 bg-slate-900/80 px-4 py-2 text-center text-xs font-medium text-sky-light backdrop-blur">
-            Arahkan barang bekas ke dalam Smart Scale-Box & pastikan cahaya cukup
+      {/* Camera Viewport & Smart Scale-Box */}
+      {scanState !== 'ERROR' && (
+        <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6">
+          {/* Static Guidance Badge */}
+          <div className="absolute left-1/2 top-4 flex -translate-x-1/2 items-center gap-2 rounded-full bg-success/90 px-4 py-2 text-white shadow-lg backdrop-blur-md">
+            <CheckCircle2 className="h-4 w-4 shrink-0" strokeWidth={2} />
+            <span className="whitespace-nowrap text-xs font-semibold">
+              {scanMode === 'OBJEK'
+                ? 'Sudut pas, siap jepret!'
+                : 'Arahkan ke sudut ruang target'}
+            </span>
           </div>
 
-          {/* Smart Scale-Box */}
-          <div className="my-auto flex flex-col items-center justify-center py-6">
-            <div className="relative flex h-72 w-72 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.03]">
-              {/* Corner Brackets */}
-              <span className="absolute left-0 top-0 h-8 w-8 rounded-tl-2xl border-l-4 border-t-4 border-sky" />
-              <span className="absolute right-0 top-0 h-8 w-8 rounded-tr-2xl border-r-4 border-t-4 border-sky" />
-              <span className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-2xl border-b-4 border-l-4 border-sky" />
-              <span className="absolute bottom-0 right-0 h-8 w-8 rounded-br-2xl border-b-4 border-r-4 border-sky" />
+          {/* Smart Scale-Box (White Corner Brackets) */}
+          <div className="relative aspect-[3/4] w-full max-w-[300px]">
+            <span className="absolute left-0 top-0 h-8 w-8 rounded-tl-xl border-l-2 border-t-2 border-white" />
+            <span className="absolute right-0 top-0 h-8 w-8 rounded-tr-xl border-r-2 border-t-2 border-white" />
+            <span className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-xl border-b-2 border-l-2 border-white" />
+            <span className="absolute bottom-0 right-0 h-8 w-8 rounded-br-xl border-b-2 border-r-2 border-white" />
 
-              {/* Calibration Crosshair */}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="h-10 w-10 rounded-full border border-dashed border-sky/70 p-2">
-                  <div className="h-full w-full rounded-full bg-sky/30" />
-                </div>
-                <p className="px-6 text-xs text-slate-300">
-                  Letakkan objek di tengah kotak untuk kalibrasi otomatis (cm)
-                </p>
-              </div>
+            {/* Alignment Crosshair */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-40">
+              <div className="h-px w-full bg-white/50" />
+              <div className="absolute h-full w-px bg-white/50" />
+              <div className="z-10 h-4 w-4 rounded-full border border-white bg-white/20" />
             </div>
           </div>
-
-          {/* Bottom Action Bar: Galeri | Shutter | Input Manual */}
-          <div className="grid grid-cols-3 items-center gap-3 pb-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 py-2 text-xs font-semibold text-white hover:bg-white/15 active:scale-95"
-            >
-              <ImageIcon className="h-5 w-5 text-sky-light" strokeWidth={1.5} />
-              Galeri
-            </button>
-
-            <div className="flex justify-center">
-              <button
-                type="button"
-                aria-label="Jepret Barang Bekas"
-                onClick={handleCameraCapture}
-                className="flex h-18 w-18 items-center justify-center rounded-full border-4 border-sky bg-white p-1 shadow-premium transition-transform active:scale-90"
-              >
-                <span className="h-full w-full rounded-full border-2 border-navy bg-white" />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleManualInput}
-              className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl bg-white/10 py-2 text-xs font-semibold text-white hover:bg-white/15 active:scale-95"
-            >
-              <Keyboard className="h-5 w-5 text-sky-light" strokeWidth={1.5} />
-              Manual
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleGalleryUpload}
-              className="hidden"
-            />
-          </div>
-        </div>
+        </main>
       )}
 
-      {/* STATE 2: CONFIRMATION SHEET */}
+      {/* Bottom Camera Bar (IDLE) */}
+      {scanState === 'IDLE' && (
+        <footer className="z-20 flex shrink-0 items-center justify-between bg-gradient-to-t from-black/80 to-transparent px-8 pt-6 pb-[max(env(safe-area-inset-bottom),1.75rem)]">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center gap-1 transition-opacity active:opacity-70"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md">
+              <ImageIcon className="h-6 w-6" strokeWidth={1.6} />
+            </div>
+            <span className="text-[10px] font-medium text-white/80">Galeri</span>
+          </button>
+
+          <button
+            type="button"
+            aria-label="Jepret"
+            onClick={handleCameraCapture}
+            className="h-20 w-20 rounded-full border-4 border-white p-1.5 transition-transform active:scale-95"
+          >
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+              <div className="h-14 w-14 rounded-full bg-white" />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleManualInput}
+            className="flex flex-col items-center gap-1 transition-opacity active:opacity-70"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md">
+              <Edit3 className="h-6 w-6" strokeWidth={1.6} />
+            </div>
+            <span className="text-[10px] font-medium text-white/80">Manual</span>
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleGalleryUpload}
+            className="hidden"
+          />
+        </footer>
+      )}
+
+      {/* LAYER 2: POST-CAPTURE CONFIRMATION BOTTOM SHEET */}
       {scanState === 'CONFIRMATION' && result && (
-        <div className="mt-2 flex flex-1 flex-col justify-between rounded-t-3xl bg-surface px-5 pt-5 text-slate-900 shadow-up">
-          <div className="space-y-4 overflow-y-auto pb-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h1 className="text-xl font-bold text-navy">Konfirmasi Dimensi</h1>
-                <p className="text-xs text-text-secondary">
-                  Periksa atau koreksi ukuran sebelum merancang arsitektur 3D
-                </p>
-              </div>
-              <span
-                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                  result.confidence >= 0.9
-                    ? 'bg-success-light text-success'
-                    : 'bg-amber-100 text-amber-800'
-                }`}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.8} />
-                {Math.round(result.confidence * 100)}% Akurat
-              </span>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
-              <img
-                src={result.photoUrl}
-                alt={result.materialType}
-                className="h-44 w-full object-cover"
-              />
-              <div className="p-3">
-                <p className="text-sm font-bold text-navy">{result.materialType}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {result.detectedMaterials.map((mat) => (
-                    <span
-                      key={mat}
-                      className="rounded-full bg-sky-lighter px-2.5 py-0.5 text-[11px] font-semibold text-sky"
-                    >
-                      {mat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Editable Dimensions P x L x T */}
-            <div className="rounded-2xl border border-border bg-white p-4 shadow-soft">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-navy">
-                  Kalibrasi Dimensi (cm)
-                </h2>
-                <span className="font-mono text-[11px] text-text-secondary">
-                  P × L × T
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5">
-                <DimensionField
-                  label="Panjang"
-                  value={result.dimensions.panjang}
-                  onChange={(val) => updateDimensions({ panjang: val })}
-                />
-                <DimensionField
-                  label="Lebar"
-                  value={result.dimensions.lebar}
-                  onChange={(val) => updateDimensions({ lebar: val })}
-                />
-                <DimensionField
-                  label="Tinggi"
-                  value={result.dimensions.tinggi}
-                  onChange={(val) => updateDimensions({ tinggi: val })}
-                />
-              </div>
-            </div>
+        <div className="absolute inset-x-0 bottom-0 z-30">
+          <div className="flex h-6 w-full items-end justify-center pb-2">
+            <div className="h-1.5 w-10 rounded-full bg-white/40" />
           </div>
 
-          {/* Dual CTA Actions */}
-          <div className="space-y-2.5 border-t border-border bg-surface pt-3">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={handleOfferToMarket}
-                className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-xl border border-navy bg-white px-3 text-sm font-semibold text-navy active:scale-[0.98]"
-              >
-                <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
-                Tawarkan
-              </button>
+          <div className="relative rounded-t-3xl bg-surface px-6 pt-6 pb-[max(env(safe-area-inset-bottom),1.75rem)] text-slate-900 shadow-up">
+            {/* Retake button */}
+            <button
+              type="button"
+              aria-label="Pindai ulang"
+              onClick={reset}
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-navy active:bg-slate-200"
+            >
+              <RotateCcw className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+
+            {/* Detection Header */}
+            <div className="mb-6 pr-10">
+              <div className="mb-1 flex items-center gap-2">
+                <Box className="h-5 w-5 text-sky" strokeWidth={1.8} />
+                <h2 className="text-lg font-bold text-navy">
+                  {result.materialType}
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 rounded-sm bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
+                  <ShieldCheck className="h-3 w-3" />
+                  Akurasi Tinggi ({Math.round(result.confidence * 100)}%)
+                </span>
+                <span className="text-xs text-text-secondary">Bisa diedit</span>
+              </div>
+            </div>
+
+            {/* Dimension Inputs Grid (3 Kotak Putih P/L/T) */}
+            <div className="mb-8 grid grid-cols-3 gap-3">
+              <HtmlDimensionInput
+                label="Panjang (P)"
+                value={result.dimensions.panjang}
+                onChange={(val) => updateDimensions({ panjang: val })}
+              />
+              <HtmlDimensionInput
+                label="Lebar (L)"
+                value={result.dimensions.lebar}
+                onChange={(val) => updateDimensions({ lebar: val })}
+              />
+              <HtmlDimensionInput
+                label="Tinggi (T)"
+                value={result.dimensions.tinggi}
+                onChange={(val) => updateDimensions({ tinggi: val })}
+              />
+            </div>
+
+            {/* Stacked Action Buttons */}
+            <div className="flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => navigate('/analisis')}
-                className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-xl bg-sky px-3 text-sm font-semibold text-white shadow-premium active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy py-3.5 text-sm font-semibold text-white shadow-premium transition-transform active:scale-[0.98]"
               >
-                <Sparkles className="h-4 w-4" strokeWidth={1.5} />
+                <PenTool className="h-[18px] w-[18px]" strokeWidth={1.8} />
                 Lanjut Rancang
               </button>
-            </div>
 
-            <button
-              type="button"
-              onClick={reset}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-navy"
-            >
-              <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.5} />
-              Pindai Ulang Barang
-            </button>
+              <button
+                type="button"
+                onClick={handleOfferToMarket}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-sky bg-transparent py-3 text-sm font-semibold text-sky transition-colors active:bg-sky-light"
+              >
+                <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                Tawarkan ke Pasar
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* STATE 3: ERROR */}
+      {/* ERROR STATE */}
       {scanState === 'ERROR' && (
-        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <div className="z-20 flex flex-1 flex-col items-center justify-center px-6 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger/20 text-danger">
-            <AlertCircle className="h-8 w-8" strokeWidth={1.5} />
+            <AlertCircle className="h-8 w-8" />
           </div>
           <h2 className="text-lg font-bold text-white">Pemindaian Gagal</h2>
           <p className="mt-1.5 max-w-xs text-sm text-slate-300">
@@ -333,29 +366,35 @@ export default function ScanScreen() {
   );
 }
 
-interface DimensionFieldProps {
+function HtmlDimensionInput({
+  label,
+  value,
+  onChange,
+}: {
   label: string;
   value: number;
-  onChange: (nextValue: number) => void;
-}
-
-function DimensionField({ label, value, onChange }: DimensionFieldProps) {
+  onChange: (val: number) => void;
+}) {
   return (
-    <label className="flex flex-col rounded-xl bg-sky-lighter p-2.5">
-      <span className="text-[11px] font-medium text-text-secondary">
+    <label className="group relative rounded-xl border border-border bg-white p-3 shadow-sm transition-all focus-within:border-sky focus-within:ring-1 focus-within:ring-sky">
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
         {label}
       </span>
-      <input
-        type="number"
-        inputMode="decimal"
-        min={1}
-        value={value}
-        onChange={(e) => {
-          const parsed = Number(e.target.value);
-          onChange(Number.isFinite(parsed) && parsed >= 0 ? parsed : 0);
-        }}
-        className="mt-1 w-full bg-transparent font-mono text-lg font-bold text-navy focus:outline-none"
-      />
+      <div className="flex items-end gap-1">
+        <input
+          type="number"
+          inputMode="decimal"
+          min={1}
+          value={value}
+          onChange={(e) => {
+            const parsed = Number(e.target.value);
+            onChange(Number.isFinite(parsed) && parsed >= 0 ? parsed : 0);
+          }}
+          className="m-0 w-full appearance-none border-none bg-transparent p-0 font-mono text-xl font-bold text-navy outline-none"
+        />
+        <span className="pb-1 text-xs font-medium text-text-secondary">cm</span>
+      </div>
+      <Pencil className="absolute right-2.5 top-2.5 h-3 w-3 text-slate-300 opacity-0 transition-opacity group-focus-within:opacity-100" />
     </label>
   );
 }

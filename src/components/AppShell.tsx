@@ -10,18 +10,7 @@ const desktopLinks = [
 
 export default function AppShell() {
   return (
-    <div className="flex h-full flex-col bg-surface">
-      {/* Mobile Header */}
-      <header className="flex items-center justify-between border-b border-border bg-white px-4 pb-3 pt-[max(env(safe-area-inset-top),0.75rem)] md:hidden">
-        <div>
-          <span className="text-lg font-bold tracking-tight text-navy">RE-CRAFT</span>
-          <p className="text-[11px] text-text-secondary">Pindai Bekas, Rakit Presisi</p>
-        </div>
-        <span className="rounded-full bg-sky-lighter px-2.5 py-1 font-mono text-[11px] font-bold text-sky">
-          V0
-        </span>
-      </header>
-
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-surface">
       {/* Desktop Top Navigation Bar */}
       <header className="hidden items-center justify-between border-b border-border bg-white px-6 py-3 md:flex">
         <NavLink to="/" className="text-xl font-bold tracking-tight text-navy">
@@ -55,29 +44,32 @@ export default function AppShell() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24 md:pb-6">
+      <main className="hide-scrollbar flex-1 overflow-y-auto pb-28 md:pb-8">
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation Bar (4 Menu + Elevated Center FAB Scan) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 rounded-t-2xl border-t border-border bg-white px-2 pt-1.5 pb-[max(env(safe-area-inset-bottom),0.5rem)] shadow-up md:hidden">
-        <div className="grid grid-cols-5 items-end">
+      {/* Mobile Bottom Navigation Bar (Sesuai Prototipe HTML: titik aktif Sky + Center FAB polos) */}
+      <nav className="fixed bottom-0 left-0 z-40 w-full rounded-t-2xl border-t border-slate-100 bg-white px-2 pt-2 pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-nav md:hidden">
+        <div className="relative flex items-center justify-between">
           <MobileTab to="/" icon={Home} label="Beranda" end />
           <MobileTab to="/proyek" icon={Folder} label="Proyek" />
 
-          <div className="flex flex-col items-center justify-center pb-1">
-            <NavLink
-              to="/scan"
-              aria-label="Scan"
-              className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-navy text-white shadow-premium transition-transform active:scale-95"
-            >
-              <Scan className="h-6 w-6" strokeWidth={1.8} />
-            </NavLink>
-            <span className="mt-0.5 text-[10px] font-semibold text-navy">Scan</span>
-          </div>
+          {/* Center FAB Spacer */}
+          <div className="flex flex-1 justify-center" aria-hidden="true" />
 
           <MobileTab to="/pasar" icon={ShoppingBag} label="Pasar" />
           <MobileTab to="/profil" icon={User} label="Profil" />
+
+          {/* Center Elevated FAB: SCAN */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+            <NavLink
+              to="/scan"
+              aria-label="Scan Barang Bekas"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-navy text-white shadow-premium transition-transform active:scale-95"
+            >
+              <Scan className="h-6 w-6" strokeWidth={2} />
+            </NavLink>
+          </div>
         </div>
       </nav>
     </div>
@@ -97,13 +89,28 @@ function MobileTab({ to, label, icon: Icon, end }: MobileTabProps) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl py-1 transition-colors ${
-          isActive ? 'text-navy' : 'text-slate-400'
+        `group flex flex-1 flex-col items-center justify-center gap-1 py-1.5 transition-colors ${
+          isActive ? 'text-navy' : 'text-slate-400 active:text-navy'
         }`
       }
     >
-      <Icon className="h-5 w-5" strokeWidth={1.5} />
-      <span className="text-[11px] font-medium">{label}</span>
+      {({ isActive }) => (
+        <>
+          <div className="relative">
+            <Icon className="h-6 w-6" strokeWidth={1.5} />
+            {isActive && (
+              <span className="absolute -bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-sky" />
+            )}
+          </div>
+          <span
+            className={`mt-1 text-[10px] ${
+              isActive ? 'font-semibold text-navy' : 'font-medium'
+            }`}
+          >
+            {label}
+          </span>
+        </>
+      )}
     </NavLink>
   );
 }

@@ -10,18 +10,13 @@ interface LoadingOverlayProps {
 export function LoadingOverlay({
   isVisible,
   steps,
-  subtitle = 'Arsitek digital RE-CRAFT sedang memproses...',
 }: LoadingOverlayProps) {
   if (!isVisible) return null;
 
-  return <LoadingOverlayContent steps={steps} subtitle={subtitle} />;
+  return <LoadingOverlayContent steps={steps} />;
 }
 
-function LoadingOverlayContent({
-  steps,
-  subtitle,
-}: Required<Pick<LoadingOverlayProps, 'subtitle'>> &
-  Pick<LoadingOverlayProps, 'steps'>) {
+function LoadingOverlayContent({ steps }: { steps?: readonly string[] }) {
   const activeSteps =
     steps && steps.length > 0 ? steps : scanService.getAnalysisSteps();
   const [currentStep, setCurrentStep] = useState(0);
@@ -29,93 +24,77 @@ function LoadingOverlayContent({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % activeSteps.length);
-    }, 1150);
+    }, 1050);
 
     return () => clearInterval(interval);
   }, [activeSteps.length]);
 
+  const progressPercent = Math.round(
+    ((currentStep + 1) / activeSteps.length) * 100
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/80 px-6 backdrop-blur-md">
-      {/* Animasi SVG Blueprint Teknik */}
-      <div className="mb-8 rounded-2xl border border-sky/30 bg-navy/40 p-4 shadow-glow">
-        <svg
-          viewBox="0 0 200 200"
-          className="h-28 w-28"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <defs>
-            <pattern
-              id="recraftBlueprintGrid"
-              width="20"
-              height="20"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 20 0 L 0 0 0 20"
-                fill="none"
-                stroke="#3B9FD9"
-                strokeOpacity="0.25"
-                strokeWidth="0.75"
-              />
-            </pattern>
-          </defs>
-          <rect width="200" height="200" fill="url(#recraftBlueprintGrid)" rx="12" />
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-sky-lighter to-surface px-6">
+      {/* Blueprint Animation SVG (Sesuai Prototipe HTML) */}
+      <div className="relative mb-8 h-40 w-40 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: 'radial-gradient(#0F3A7D 1px, transparent 1px)',
+            backgroundSize: '10px 10px',
+          }}
+        />
+        <svg viewBox="0 0 100 100" className="relative z-10 h-full w-full">
           <rect
-            x="30"
-            y="30"
-            width="140"
-            height="140"
+            x="10"
+            y="10"
+            width="80"
+            height="80"
+            rx="8"
             fill="none"
             stroke="#3B9FD9"
-            strokeWidth="2.5"
-            strokeDasharray="560"
-            strokeDashoffset="560"
-            className="animate-blueprint-draw"
+            strokeWidth="2"
+            className="animate-blueprint-line"
           />
-          <line
-            x1="30"
-            y1="100"
-            x2="170"
-            y2="100"
-            stroke="#E0F2FE"
+          <path
+            d="M 10 50 L 90 50 M 50 10 L 50 90"
+            fill="none"
+            stroke="#3B9FD9"
             strokeWidth="1.5"
-            strokeDasharray="6,4"
+            strokeDasharray="4"
+            className="animate-blueprint-line"
           />
-          <line
-            x1="100"
-            y1="30"
-            x2="100"
-            y2="170"
-            stroke="#E0F2FE"
+          <circle
+            cx="50"
+            cy="50"
+            r="20"
+            fill="none"
+            stroke="#0F3A7D"
+            strokeWidth="2"
+            className="animate-blueprint-line"
+          />
+          <path
+            d="M 36 36 L 64 64 M 36 64 L 64 36"
+            fill="none"
+            stroke="#0F3A7D"
             strokeWidth="1.5"
-            strokeDasharray="6,4"
+            className="animate-blueprint-line"
           />
         </svg>
+        <div className="animate-scan-beam absolute inset-x-0 h-10 rounded bg-gradient-to-b from-transparent via-sky/30 to-transparent" />
       </div>
 
-      {/* Teks Progres 3 Langkah */}
-      <div className="mb-8 text-center">
-        <p className="mb-1.5 min-h-7 text-lg font-bold text-white">
+      {/* Progress Text & Bar */}
+      <div className="flex w-full max-w-[240px] flex-col items-center">
+        <h2 className="mb-2 min-h-7 text-center text-lg font-bold text-navy">
           {activeSteps[currentStep]}
-        </p>
-        <p className="text-sm text-sky-light/80">{subtitle}</p>
-      </div>
-
-      {/* Bar Progres */}
-      <div className="w-full max-w-xs">
-        <div className="mb-3 flex gap-2">
-          {activeSteps.map((stepLabel, index) => (
-            <div
-              key={stepLabel}
-              className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                index <= currentStep ? 'bg-sky' : 'bg-white/20'
-              }`}
-            />
-          ))}
+        </h2>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+          <div
+            className="h-full rounded-full bg-sky transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
-        <p className="text-center font-mono text-xs text-sky-light">
-          Langkah {currentStep + 1} / {activeSteps.length}
-        </p>
       </div>
     </div>
   );

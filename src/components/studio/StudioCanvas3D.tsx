@@ -42,7 +42,7 @@ export function StudioCanvas3D({ payload, resetSignal }: StudioCanvas3DProps) {
       camera={{ position: [3.8, 2.6, 4.8], fov: CAMERA_FOV_DEG, near: 0.1, far: 60 }}
       dpr={[1, 2]}
       onPointerMissed={() => selectComponent(null)}
-      className="h-full w-full touch-none bg-gradient-to-b from-sky-lighter via-surface to-sky-light/40"
+      className="h-full w-full touch-none bg-transparent"
     >
       <ambientLight intensity={0.95} />
       <directionalLight position={[4, 6, 4]} intensity={1.1} />

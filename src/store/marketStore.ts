@@ -20,6 +20,7 @@ interface MarketStoreState {
   setSearchQuery: (query: string) => void;
   setLocationFilter: (location: string) => void;
   applyFilters: () => void;
+  addMaterialListing: (listing: Omit<MaterialListing, 'id'>) => void;
   submitProposal: (input: Omit<CollabProposal, 'id' | 'status'>) => Promise<void>;
   updateProposalStatus: (
     proposalId: string,
@@ -93,6 +94,15 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
 
     set({ filteredProducts: filtered });
   },
+
+  addMaterialListing: (listing) =>
+    set((state) => ({
+      materialListings: [
+        { ...listing, id: `MAT_${Date.now()}` },
+        ...state.materialListings,
+      ],
+      activeTab: 'BAHAN',
+    })),
 
   submitProposal: async (input) => {
     const created = await marketService.submitCollabProposal(input);

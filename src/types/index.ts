@@ -22,7 +22,13 @@ export interface ToolOption {
   id: string;
   name: string;
   available: boolean;
-  iconName: 'pen-tool' | 'ruler' | 'scissors' | 'droplets' | 'spline' | 'layers';
+  iconName:
+    | 'pen-tool'
+    | 'ruler'
+    | 'scissors'
+    | 'droplets'
+    | 'git-commit'
+    | 'paperclip';
 }
 
 export interface CraftTargetOption {
@@ -30,6 +36,7 @@ export interface CraftTargetOption {
   studioProjectId: string;
   name: string;
   subtitle: string;
+  durationLabel: string;
   primaryMaterial: string;
   estimatedValueRangeIdr: [number, number];
   componentCount: number;
@@ -42,6 +49,7 @@ export interface ProjectSummary {
   id: string;
   name: string;
   thumbnail: string;
+  iconHint: 'box' | 'lamp' | 'archive';
   materialLabel: string;
   dimensionsCm: ScanDimensionsCm;
   componentCount: number;
@@ -59,11 +67,15 @@ export interface MarketProduct {
   images: string[];
   originMaterialBadge: string;
   description: string;
+  sustainabilityNote: string;
+  careInstructions: string[];
   dimensionsText: string;
   weightGrams: number;
+  soldCountLabel: string;
   seller: {
     id: string;
     name: string;
+    avatarUrl: string;
     location: string;
     rating: number;
     verified: boolean;
@@ -106,6 +118,7 @@ export interface RevenueHistoryItem {
 export interface UserProfile {
   id: string;
   name: string;
+  initials: string;
   avatar: string;
   location: string;
   verified: boolean;
@@ -113,9 +126,9 @@ export interface UserProfile {
   roles: UserRole[];
   balanceIdr: number;
   impactStats: {
-    scrapSavedKg: number;
-    projectsBuilt: number;
-    estimatedValueCreatedIdr: number;
+    projectsCompleted: number;
+    itemsManaged: number;
+    co2SavedKg: number;
   };
   revenueHistory: RevenueHistoryItem[];
 }

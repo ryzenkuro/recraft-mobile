@@ -25,8 +25,9 @@
 
   /* Shadow System */
   --shadow-soft: 0 2px 4px rgba(15, 58, 125, 0.08);
-  --shadow-premium: 0 4px 12px rgba(59, 159, 217, 0.25);
-  --shadow-up: 0 -4px 16px rgba(15, 58, 125, 0.06);
+  --shadow-premium: 0 4px 12px rgba(59, 159, 217, 0.18);
+  --shadow-up: 0 -4px 16px rgba(15, 58, 125, 0.08);
+  --shadow-nav: 0 -2px 10px rgba(15, 58, 125, 0.05);
   --shadow-glow: 0 0 20px rgba(59, 159, 217, 0.45);
 }
 
@@ -36,14 +37,54 @@ body,
   height: 100%;
   margin: 0;
   font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.bg-engineering-grid {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(226, 232, 240, 0.55) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.55) 1px, transparent 1px);
 }
 
 @keyframes blueprint-draw {
-  to {
+  0% {
+    stroke-dashoffset: 400;
+  }
+  100% {
     stroke-dashoffset: 0;
   }
 }
 
-.animate-blueprint-draw {
-  animation: blueprint-draw 1.4s ease-in-out infinite alternate;
+@keyframes scan-beam-slide {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-blueprint-line {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: blueprint-draw 2s ease-in-out infinite alternate;
+}
+
+.animate-scan-beam {
+  animation: scan-beam-slide 2s infinite linear;
 }

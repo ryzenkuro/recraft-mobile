@@ -13,6 +13,7 @@ export {
   mockStudioPayloads,
   mockTools,
   mockUserProfile,
+  SCAN_CAMERA_BG_URL,
 } from './mockData';
 
 export {
