@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RE-CRAFT</string>
+    <string name="title_activity_main">RE-CRAFT</string>
+    <string name="package_name">com.recraft.mobile</string>
+    <string name="custom_url_scheme">com.recraft.mobile</string>
+</resources>

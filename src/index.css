@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* 60-30-10 Color System */
+  --color-navy: #0F3A7D;
+  --color-navy-light: #1E5BA8;
+  --color-sky: #3B9FD9;
+  --color-sky-light: #E0F2FE;
+  --color-sky-lighter: #F0F9FF;
+  --color-surface: #F8FAFC;
+  --color-success: #16A34A;
+  --color-success-light: #DCFCE7;
+  --color-warning: #F59E0B;
+  --color-danger: #DC2626;
+  --color-border: #E2E8F0;
+  --color-text-secondary: #475569;
+
+  /* Technical Line Semantics (Mini SVG Map) */
+  --color-tech-cut: #DC2626;
+  --color-tech-fold: #2563EB;
+  --color-tech-joint: #15803D;
+
+  /* Shadow System */
+  --shadow-soft: 0 2px 4px rgba(15, 58, 125, 0.08);
+  --shadow-premium: 0 4px 12px rgba(59, 159, 217, 0.25);
+  --shadow-up: 0 -4px 16px rgba(15, 58, 125, 0.06);
+  --shadow-glow: 0 0 20px rgba(59, 159, 217, 0.45);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-sans);
+}
+
+@keyframes blueprint-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-blueprint-draw {
+  animation: blueprint-draw 1.4s ease-in-out infinite alternate;
+}
